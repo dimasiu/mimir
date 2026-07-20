@@ -155,11 +155,6 @@ func (b *RangeVectorDuplicationBuffer) bufferUpToAndIncluding(ctx context.Contex
 				return bufferedRangeVectorStepData{}, err
 			}
 
-			// Ensure that per-series buffers for FPoint and HPoints are created before we
-			// move on to the next series (if they haven't already been created) since entries
-			// need to be added the respective ring buffers in order.
-			b.initBuffersForSeries(b.lastNextSeriesCallIndex)
-
 			b.lastNextStepSamplesCallIndex = -1
 			b.lastNextSeriesCallIndex++
 			if !b.anyConsumerWillReadSeries(b.lastNextSeriesCallIndex, nil) {
@@ -167,6 +162,12 @@ func (b *RangeVectorDuplicationBuffer) bufferUpToAndIncluding(ctx context.Contex
 				b.lastNextStepSamplesCallIndex = b.timeRange.StepCount - 1
 				continue
 			}
+
+			// There are consumers that will read this series so ensure that per-series buffers
+			// for FPoint and HPoints are created before we attempt to merge step data into shared
+			// buffers. Do this now since entries need to be added the respective ring buffers in
+			// order.
+			b.initBuffersForSeries(b.lastNextSeriesCallIndex)
 		}
 
 		stepData, err := b.Inner.NextStepSamples(ctx)
