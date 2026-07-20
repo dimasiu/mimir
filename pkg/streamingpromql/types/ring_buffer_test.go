@@ -1373,4 +1373,23 @@ func TestRingBufferView_IsDirty(t *testing.T) {
 		shouldHaveDirtyViews(t, hbuff, hviews)
 	})
 
+	t.Run("use", func(t *testing.T) {
+		fbuff := &fPointRingBufferWrapper{NewFPointRingBuffer(limiter.NewUnlimitedMemoryConsumptionTracker(context.Background()))}
+		hbuff := &hPointRingBufferWrapper{NewHPointRingBuffer(limiter.NewUnlimitedMemoryConsumptionTracker(context.Background()))}
+
+		for ts := int64(10); ts < 90; ts += 10 {
+			mustAppend(t, fbuff, promql.FPoint{T: ts})
+			mustAppend(t, hbuff, promql.HPoint{T: ts, H: &histogram.FloatHistogram{}})
+		}
+
+		fviews := shouldHaveCleanViews(t, fbuff)
+		hviews := shouldHaveCleanViews(t, hbuff)
+
+		require.NoError(t, fbuff.Use(make([]promql.FPoint, 0, 16)))
+		require.NoError(t, hbuff.Use(make([]promql.HPoint, 0, 16)))
+
+		shouldHaveDirtyViews(t, fbuff, fviews)
+		shouldHaveDirtyViews(t, hbuff, hviews)
+	})
+
 }

@@ -322,6 +322,7 @@ func (b *HPointRingBuffer) Use(s []promql.HPoint) error {
 
 	putHPointSliceForRingBuffer(&b.points, b.memoryConsumptionTracker)
 
+	b.generation++
 	b.points = s[:cap(s)]
 	b.firstIndex = 0
 	b.size = len(s)

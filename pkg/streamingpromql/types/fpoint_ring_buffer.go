@@ -400,6 +400,7 @@ func (b *FPointRingBuffer) Use(s []promql.FPoint) error {
 
 	putFPointSliceForRingBuffer(&b.points, b.memoryConsumptionTracker)
 
+	b.generation++
 	b.points = s[:cap(s)]
 	b.firstIndex = 0
 	b.size = len(s)
