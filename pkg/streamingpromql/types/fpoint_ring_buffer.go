@@ -545,10 +545,7 @@ func (v *FPointRingBufferView) Clone() (*FPointRingBufferView, *FPointRingBuffer
 		return nil, nil, err
 	}
 
-	view := &FPointRingBufferView{
-		buffer: buffer,
-		size:   v.size,
-	}
+	view := buffer.ViewAll(nil)
 
 	return view, buffer, nil
 }

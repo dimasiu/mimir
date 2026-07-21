@@ -110,6 +110,19 @@ func (b *HPointRingBuffer) ViewUntilSearchingForwards(maxT int64, existing *HPoi
 	return existing
 }
 
+// ViewAll returns a view which includes all points in the ring buffer.
+// The returned view is no longer valid if this buffer is modified (eg. a point is added, or the buffer is reset or closed).
+func (b *HPointRingBuffer) ViewAll(existing *HPointRingBufferView) *HPointRingBufferView {
+	if existing == nil {
+		existing = &HPointRingBufferView{buffer: b}
+	}
+
+	existing.generation = b.generation
+	existing.offset = 0
+	existing.size = b.size
+	return existing
+}
+
 // ViewUntilSearchingBackwards is like ViewUntilSearchingForwards, except it examines the points from the end of the buffer, so
 // is preferred over ViewUntilSearchingForwards if it is expected that only a few of the points will have timestamp greater than maxT.
 func (b *HPointRingBuffer) ViewUntilSearchingBackwards(maxT int64, existing *HPointRingBufferView) *HPointRingBufferView {
@@ -557,10 +570,7 @@ func (v *HPointRingBufferView) Clone() (*HPointRingBufferView, *HPointRingBuffer
 		return nil, nil, err
 	}
 
-	view := &HPointRingBufferView{
-		buffer: buffer,
-		size:   v.size,
-	}
+	view := buffer.ViewAll(nil)
 
 	return view, buffer, nil
 }
